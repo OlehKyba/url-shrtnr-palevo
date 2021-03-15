@@ -102,4 +102,13 @@ public class Logic {
     }
   }
 
+  /**
+   * DeleteUrlAlias wrapper.
+   *
+   * @param email user email
+   * @param alias alias which has to be deleted
+   */
+  public void deleteAlias(String email, String alias) {
+    urls.deleteUrlAlias(email, alias);
+  }
 }

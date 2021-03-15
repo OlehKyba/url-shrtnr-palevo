@@ -6,7 +6,6 @@ import edu.kpi.testcourse.rest.models.ErrorResponse;
 import edu.kpi.testcourse.rest.models.UrlShortenRequest;
 import edu.kpi.testcourse.rest.models.UrlShortenResponse;
 import edu.kpi.testcourse.serialization.JsonTool;
-import edu.kpi.testcourse.storage.UrlRepository;
 import edu.kpi.testcourse.storage.UrlRepository.AliasAlreadyExist;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -31,7 +30,6 @@ public class AuthenticatedApiController {
   private final Logic logic;
   private final JsonTool json;
   private final HttpHostResolver httpHostResolver;
-  private final UrlRepository urlRepository;
 
 
   /**
@@ -40,18 +38,15 @@ public class AuthenticatedApiController {
    * @param logic the business logic module
    * @param json JSON serialization tool
    * @param httpHostResolver micronaut httpHostResolver
-   * @param urlRepository the URL repository module
    */
   @Inject
   public AuthenticatedApiController(
       Logic logic,
       JsonTool json,
-      HttpHostResolver httpHostResolver,
-      UrlRepository urlRepository) {
+      HttpHostResolver httpHostResolver) {
     this.logic = logic;
     this.json = json;
     this.httpHostResolver = httpHostResolver;
-    this.urlRepository = urlRepository;
   }
 
   /**
@@ -86,9 +81,10 @@ public class AuthenticatedApiController {
    */
   @Delete(value = "/urls/{alias}")
   public HttpResponse<?> delete(@Body UrlShortenRequest request,
-                                Principal principal) throws IllegalArgumentException {
+                                Principal principal,
+                                Logic logic) throws IllegalArgumentException {
     try {
-      urlRepository.deleteUrlAlias(request.alias(), principal.getName());
+      logic.deleteAlias(request.alias(), principal.getName());
       return HttpResponse.ok();
     } catch (IllegalArgumentException e) {
       return HttpResponse.serverError(json.toJson(new ErrorResponse(1,
