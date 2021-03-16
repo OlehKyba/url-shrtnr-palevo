@@ -85,7 +85,7 @@ public class AuthenticatedApiController {
                                 Logic logic) throws IllegalArgumentException {
     try {
       logic.deleteAlias(request.alias(), principal.getName());
-      return HttpResponse.ok();
+      return HttpResponse.noContent();
     } catch (IllegalArgumentException e) {
       return HttpResponse.serverError(json.toJson(new ErrorResponse(1,
         "Alias was not found among created by the user")));
