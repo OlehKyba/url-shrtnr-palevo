@@ -4,6 +4,7 @@ import edu.kpi.testcourse.entities.UrlAlias;
 import edu.kpi.testcourse.logic.UrlShortenerConfig;
 import edu.kpi.testcourse.serialization.JsonToolJacksonImpl;
 import edu.kpi.testcourse.storage.UrlRepository.AliasAlreadyExist;
+import edu.kpi.testcourse.storage.UrlRepository.PermissionDenied;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -135,5 +136,43 @@ public class UrlRepositoryFileImplTest {
 
     // THEN
     assertThat(urls).asList().isEmpty();
+  }
+
+  @Test
+  void shouldDeleteUrl() {
+    // GIVEN
+    UrlAlias url = new UrlAlias("alias", "http://www.test.com", "user@test.com");
+    urlRepository.createUrlAlias(url);
+
+    // WHEN
+    urlRepository.deleteUrlAlias("user@test.com", "alias");
+
+    // THEN
+    assertThat(urlRepository.findUrlAlias("alias")).isNull();
+    assertThat(urlRepository.getAllAliasesForUser("user@test.com"))
+                            .asList()
+                            .doesNotContain(url);
+  }
+
+  @Test
+  void shouldThrowRuntimeError_whenNoAliasForDeletion() {
+    // GIVEN
+    String notExistsAlias = "alias";
+    String email = "user@test.com";
+
+    // WHEN + THEN
+    assertThrows(RuntimeException.class,
+      () -> urlRepository.deleteUrlAlias(email, notExistsAlias));
+  }
+
+  @Test
+  void shouldThrowPermissionDenied_whenAliasDoesNotBelongToUser() {
+    // GIVEN
+    UrlAlias urlAlias = new UrlAlias("alias", "http://google.com", "user@test.com");
+    urlRepository.createUrlAlias(urlAlias);
+
+    // WHEN + THEN
+    assertThrows(PermissionDenied.class,
+      () -> urlRepository.deleteUrlAlias("test@user.com", "alias"));
   }
 }

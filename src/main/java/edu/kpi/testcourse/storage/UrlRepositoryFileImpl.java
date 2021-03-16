@@ -49,18 +49,32 @@ public class UrlRepositoryFileImpl implements UrlRepository {
     urlMapByAlias.put(urlAlias.alias(), urlAlias);
     putInMapByEmail(urlsMapByEmail, urlAlias);
 
-    writeUrlsToJsonDatabaseFile(jsonTool, urlMapByAlias, jsonFilePath);
+    syncUrlsWithJsonDatabaseFile();
   }
 
   @Nullable
   @Override
-  public UrlAlias findUrlAlias(String alias) {
+  public synchronized UrlAlias findUrlAlias(String alias) {
     return urlMapByAlias.get(alias);
   }
 
   @Override
   public void deleteUrlAlias(String email, String alias) throws PermissionDenied {
-    throw new PermissionDenied();
+    UrlAlias urlAlias = urlMapByAlias.get(alias);
+
+    if (urlAlias == null) {
+      throw new RuntimeException("UrlAlias record not found!");
+    }
+
+    if (!urlAlias.email().equals(email)) {
+      throw new PermissionDenied();
+    }
+
+    urlMapByAlias.remove(alias);
+    List<UrlAlias> userUrls = urlsMapByEmail.get(email);
+    userUrls.remove(urlAlias);
+
+    syncUrlsWithJsonDatabaseFile();
   }
 
   @Override
@@ -68,8 +82,8 @@ public class UrlRepositoryFileImpl implements UrlRepository {
     return urlsMapByEmail.getOrDefault(userEmail, new ArrayList<>());
   }
 
-  private static Map<String, List<UrlAlias>> makeUrlsMapByEmail (
-    Map<String, UrlAlias> urlMapByAlias
+  private static Map<String, List<UrlAlias>> makeUrlsMapByEmail(
+      Map<String, UrlAlias> urlMapByAlias
   ) {
     Map<String, List<UrlAlias>> urlsMapByEmail = new HashMap<>();
 
@@ -80,10 +94,10 @@ public class UrlRepositoryFileImpl implements UrlRepository {
   }
 
   private static void putInMapByEmail(
-    Map<String, List<UrlAlias>> urlsMapByEmail, UrlAlias urlAlias
+      Map<String, List<UrlAlias>> urlsMapByEmail, UrlAlias urlAlias
   ) {
     List<UrlAlias> urlsByEmailList = urlsMapByEmail.computeIfAbsent(urlAlias.email(),
-      s -> new ArrayList<>());
+        s -> new ArrayList<>());
     urlsByEmailList.add(urlAlias);
   }
 
@@ -108,12 +122,10 @@ public class UrlRepositoryFileImpl implements UrlRepository {
     return result;
   }
 
-  private static void writeUrlsToJsonDatabaseFile(
-      JsonTool jsonTool, Map<String, UrlAlias> urls, Path destinationFilePath
-  ) {
-    String json = jsonTool.toJson(urls);
+  private void syncUrlsWithJsonDatabaseFile() {
+    String json = jsonTool.toJson(urlMapByAlias);
     try {
-      Files.write(destinationFilePath, json.getBytes(StandardCharsets.UTF_8));
+      Files.writeString(jsonFilePath, json);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
