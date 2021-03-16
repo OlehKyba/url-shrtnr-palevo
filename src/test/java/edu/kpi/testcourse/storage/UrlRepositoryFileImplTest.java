@@ -7,6 +7,7 @@ import edu.kpi.testcourse.storage.UrlRepository.AliasAlreadyExist;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,5 +102,38 @@ public class UrlRepositoryFileImplTest {
 
     // WHEN + THEN
     assertThat(urlRepository.findUrlAlias(notExistsAlias)).isNull();
+  }
+
+  @Test
+  void shouldGetAllAliasesForUser() {
+    // GIVEN
+    UrlAlias url1 = new UrlAlias("alias1", "http://www.test1.com", "user@test.com");
+    UrlAlias url2 = new UrlAlias("alias2", "http://www.test2.com", "user@test.com");
+    UrlAlias url3 = new UrlAlias("alias3", "http://www.test3.com", "user@test.com");
+    UrlAlias url4 = new UrlAlias("alias4", "http://www.test4.com", "notTargetUser@test.com");
+    urlRepository.createUrlAlias(url1);
+    urlRepository.createUrlAlias(url2);
+    urlRepository.createUrlAlias(url3);
+    urlRepository.createUrlAlias(url4);
+
+    // WHEN
+    List<UrlAlias> urls = urlRepository.getAllAliasesForUser("user@test.com");
+
+    // THEN
+    assertThat(urls.size()).isEqualTo(3);
+    assertThat(urls).asList().contains(url1, url2, url3);
+  }
+
+  @Test
+  void shouldEmptyListAliasesForUser() {
+    // GIVEN
+    UrlAlias url = new UrlAlias("alias", "http://www.test.com", "notTargetUser@test.com");
+    urlRepository.createUrlAlias(url);
+
+    // WHEN
+    List<UrlAlias> urls = urlRepository.getAllAliasesForUser("user@test.com");
+
+    // THEN
+    assertThat(urls).asList().isEmpty();
   }
 }

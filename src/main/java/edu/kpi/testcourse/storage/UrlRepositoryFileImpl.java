@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,8 @@ public class UrlRepositoryFileImpl implements UrlRepository {
 
   // Urls, keyed by alias.
   private final Map<String, UrlAlias> urlMapByAlias;
+  // All User urls, keyed by email
+  private final Map<String, List<UrlAlias>> urlsMapByEmail;
 
   private final JsonTool jsonTool;
   private final Path jsonFilePath;
@@ -34,6 +37,7 @@ public class UrlRepositoryFileImpl implements UrlRepository {
     this.jsonTool = jsonTool;
     this.jsonFilePath = makeJsonFilePath(appConfig.storageRoot());
     this.urlMapByAlias = readUrlsFromJsonDatabaseFile(jsonTool, this.jsonFilePath);
+    this.urlsMapByEmail = makeUrlsMapByEmail(urlMapByAlias);
   }
 
   @Override
@@ -43,6 +47,8 @@ public class UrlRepositoryFileImpl implements UrlRepository {
     }
 
     urlMapByAlias.put(urlAlias.alias(), urlAlias);
+    putInMapByEmail(urlsMapByEmail, urlAlias);
+
     writeUrlsToJsonDatabaseFile(jsonTool, urlMapByAlias, jsonFilePath);
   }
 
@@ -58,8 +64,27 @@ public class UrlRepositoryFileImpl implements UrlRepository {
   }
 
   @Override
-  public List<UrlAlias> getAllAliasesForUser(String userEmail) {
-    return null;
+  public synchronized List<UrlAlias> getAllAliasesForUser(String userEmail) {
+    return urlsMapByEmail.getOrDefault(userEmail, new ArrayList<>());
+  }
+
+  private static Map<String, List<UrlAlias>> makeUrlsMapByEmail (
+    Map<String, UrlAlias> urlMapByAlias
+  ) {
+    Map<String, List<UrlAlias>> urlsMapByEmail = new HashMap<>();
+
+    for (UrlAlias urlAlias : urlMapByAlias.values()) {
+      putInMapByEmail(urlsMapByEmail, urlAlias);
+    }
+    return urlsMapByEmail;
+  }
+
+  private static void putInMapByEmail(
+    Map<String, List<UrlAlias>> urlsMapByEmail, UrlAlias urlAlias
+  ) {
+    List<UrlAlias> urlsByEmailList = urlsMapByEmail.computeIfAbsent(urlAlias.email(),
+      s -> new ArrayList<>());
+    urlsByEmailList.add(urlAlias);
   }
 
   private static Path makeJsonFilePath(Path storageRoot) {
