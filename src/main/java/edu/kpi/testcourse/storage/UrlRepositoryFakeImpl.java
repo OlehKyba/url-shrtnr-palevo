@@ -34,12 +34,13 @@ public class UrlRepositoryFakeImpl implements UrlRepository {
    * @param alias the UrlAlias which should be removed
    *
    * @throws RuntimeException if no such email or alias
-   * @throws edu.kpi.testcourse.storage.UrlRepository.PermissionDenied if passed email is not equal to one which is stored in found UrlAlias object
+   * @throws edu.kpi.testcourse.storage.UrlRepository.PermissionDenied
+   *         if passed email is not equal to stored email in found UrlAlias object
    */
 
   @Override
   public void deleteUrlAlias(String email, String alias) {
-    UrlAlias foundUrlAlias = aliases.get(alias);
+    UrlAlias foundUrlAlias = findUrlAlias(alias);
 
     if (foundUrlAlias == null || foundUrlAlias.email() == null) {
       throw new RuntimeException();
