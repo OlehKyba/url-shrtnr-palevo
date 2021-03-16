@@ -1,7 +1,6 @@
 package edu.kpi.testcourse.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kpi.testcourse.logic.Logic;
 import edu.kpi.testcourse.rest.models.ErrorResponse;
 import edu.kpi.testcourse.rest.models.UrlShortenRequest;
@@ -13,6 +12,7 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Delete;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.server.util.HttpHostResolver;
 import io.micronaut.security.annotation.Secured;
@@ -31,6 +31,7 @@ public class AuthenticatedApiController {
   private final JsonTool json;
   private final HttpHostResolver httpHostResolver;
 
+
   /**
    * Main constructor.
    *
@@ -42,8 +43,7 @@ public class AuthenticatedApiController {
   public AuthenticatedApiController(
       Logic logic,
       JsonTool json,
-      HttpHostResolver httpHostResolver
-  ) {
+      HttpHostResolver httpHostResolver) {
     this.logic = logic;
     this.json = json;
     this.httpHostResolver = httpHostResolver;
@@ -69,6 +69,26 @@ public class AuthenticatedApiController {
       return HttpResponse.serverError(
         json.toJson(new ErrorResponse(1, "Alias is already taken"))
       );
+    }
+  }
+
+  /**
+   * Deletes alias via requested link.
+   *
+   * @param request to get alias from request
+   * @param principal to get name as an email for delete function
+   * @throws IllegalArgumentException if there is no such alias
+   */
+  @Delete(value = "/urls/{alias}")
+  public HttpResponse<?> delete(@Body UrlShortenRequest request,
+                                Principal principal,
+                                Logic logic) throws IllegalArgumentException {
+    try {
+      logic.deleteAlias(request.alias(), principal.getName());
+      return HttpResponse.noContent();
+    } catch (IllegalArgumentException e) {
+      return HttpResponse.serverError(json.toJson(new ErrorResponse(1,
+        "Alias was not found among created by the user")));
     }
   }
 }
