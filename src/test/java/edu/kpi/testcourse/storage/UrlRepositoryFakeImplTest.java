@@ -52,7 +52,7 @@ class UrlRepositoryFakeImplTest {
     repo.deleteUrlAlias(alias1.email(), alias1.alias());
 
     //THEN
-    assertFalse(repo.aliases.containsValue(alias1));
+    assertThat(repo.findUrlAlias("http://r.com/short")).isNull();
   }
 
   /**
@@ -67,9 +67,23 @@ class UrlRepositoryFakeImplTest {
     UrlAlias alias1 = new UrlAlias("http://r.com/short", "http://g.com/long1", "aaa@bbb.com");
 
     //THEN
-    assertThrows(IllegalArgumentException.class, ()->{repo.deleteUrlAlias(alias1.email(), alias1.alias());});
+    assertThrows(RuntimeException.class, ()->{repo.deleteUrlAlias(alias1.email(), alias1.alias());});
   }
 
+  /**
+   * Test if emails are not equals, throw PermissionDenied
+   */
+  @Test
+  void shouldCrashPermissionDenied() {
+    //GIVEN
+    UrlRepositoryFakeImpl repo = new UrlRepositoryFakeImpl();
 
+    //WHEN
+    UrlAlias alias1 = new UrlAlias("http://r.com/short", "http://g.com/long1", "aaa@bbb.com");
+    repo.createUrlAlias(alias1);
+
+    //THEN
+    assertThrows(UrlRepository.PermissionDenied.class, ()->{repo.deleteUrlAlias("bbb@aaa.com", alias1.alias());});
+  }
 
 }

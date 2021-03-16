@@ -11,8 +11,7 @@ import javax.annotation.Nullable;
  */
 public class UrlRepositoryFakeImpl implements UrlRepository {
 
-  //Make it public to make my testing process less painful
-  public final HashMap<String, UrlAlias> aliases = new HashMap<>();
+  private final HashMap<String, UrlAlias> aliases = new HashMap<>();
 
   @Override
   public void createUrlAlias(UrlAlias urlAlias) {
@@ -34,26 +33,22 @@ public class UrlRepositoryFakeImpl implements UrlRepository {
    * @param email of the user to whom the UrlAlias belongs
    * @param alias the UrlAlias which should be removed
    *
-   * @throws IllegalArgumentException if no such email or alias
+   * @throws RuntimeException if no such email or alias
+   * @throws edu.kpi.testcourse.storage.UrlRepository.PermissionDenied if passed email is not equal to one which is stored in found UrlAlias object
    */
 
   @Override
   public void deleteUrlAlias(String email, String alias) {
-    UrlAlias foundUrlAlias = null;
+    UrlAlias foundUrlAlias = aliases.get(alias);
 
-    for (UrlAlias urlAlias : aliases.values()) {
-      if (foundUrlAlias == null) {
-        if (urlAlias.email().equals(email) && urlAlias.alias().equals(alias)) {
-          foundUrlAlias = urlAlias;
-          break;
-        }
-      }
+    if (foundUrlAlias == null || foundUrlAlias.email() == null) {
+      throw new RuntimeException();
     }
-    if (foundUrlAlias == null) {
-      throw new IllegalArgumentException();
-    }
-    if (aliases.containsKey(alias)) {
+
+    if (foundUrlAlias.email().equals(email)) {
       aliases.remove(alias);
+    } else {
+      throw new PermissionDenied();
     }
   }
 
