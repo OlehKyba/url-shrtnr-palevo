@@ -43,8 +43,6 @@ public class UrlRepositoryFakeImpl implements UrlRepository {
     UrlAlias foundUrlAlias = findUrlAlias(alias);
 
     if (foundUrlAlias == null) {
-         throw new RuntimeException();
-    }
       throw new RuntimeException();
     }
 
