@@ -86,7 +86,7 @@ public class AuthenticatedApiController {
     Logic logic) throws UrlRepository.PermissionDenied {
     try {
       var aliasList = logic.getAllAliasesForUser(principal.getName());
-      return HttpResponse.created(json.toJson(aliasList));
+      return HttpResponse.ok(json.toJson(aliasList));
     }
     catch (PermissionDenied e) {
       return HttpResponse.serverError(
