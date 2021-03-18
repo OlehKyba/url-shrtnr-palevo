@@ -103,7 +103,23 @@ public class Logic {
     }
   }
 
+  /**
+   * GetAllAliasesForUser wrapper. 
+   *
+   * @param userEmail user email
+   * @return list of UrlAlias objects
+   */
   public List<UrlAlias> getAllAliasesForUser(String userEmail) {
     return urls.getAllAliasesForUser(userEmail);
+  }
+  
+  /**
+   * DeleteUrlAlias wrapper.
+   *
+   * @param email user email
+   * @param alias alias which has to be deleted
+   */
+  public void deleteAlias(String email, String alias) {
+    urls.deleteUrlAlias(email, alias);
   }
 }

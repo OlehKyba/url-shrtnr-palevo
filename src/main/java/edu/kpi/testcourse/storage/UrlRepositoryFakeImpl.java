@@ -4,6 +4,7 @@ import edu.kpi.testcourse.entities.UrlAlias;
 import io.micronaut.context.annotation.Aliases;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -11,6 +12,7 @@ import javax.annotation.Nullable;
  * An in-memory fake implementation of {@link UrlRepository}.
  */
 public class UrlRepositoryFakeImpl implements UrlRepository {
+
   private final HashMap<String, UrlAlias> aliases = new HashMap<>();
 
   @Override
@@ -27,10 +29,30 @@ public class UrlRepositoryFakeImpl implements UrlRepository {
     return aliases.get(alias);
   }
 
+  /**
+   * Delete the UrlAlias if exists from aliases HashMap.
+   *
+   * @param email of the user to whom the UrlAlias belongs
+   * @param alias the UrlAlias which should be removed
+   *
+   * @throws RuntimeException if no such email or alias
+   * @throws edu.kpi.testcourse.storage.UrlRepository.PermissionDenied
+   *         if passed email is not equal to stored email in found UrlAlias object
+   */
+
   @Override
   public void deleteUrlAlias(String email, String alias) {
-    // TODO: We should implement it
-    throw new UnsupportedOperationException();
+    UrlAlias foundUrlAlias = findUrlAlias(alias);
+
+    if (foundUrlAlias == null) {
+      throw new RuntimeException();
+    }
+
+    if (foundUrlAlias.email().equals(email)) {
+      aliases.remove(alias);
+    } else {
+      throw new PermissionDenied();
+    }
   }
 
   /**
