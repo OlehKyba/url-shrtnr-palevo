@@ -66,11 +66,10 @@ public class UrlRepositoryFakeImpl implements UrlRepository {
   @Override
   public List<UrlAlias> getAllAliasesForUser(String userEmail) {
     List<UrlAlias> aliasesList = new ArrayList<>();
-    for (UrlAlias urlAlias: aliases.values()) {
+    for (UrlAlias urlAlias : aliases.values()) {
       if (urlAlias.email().equals(userEmail)) {
         aliasesList.add(urlAlias);
-      }
-      else {
+      } else {
         throw new PermissionDenied();
       }
     }

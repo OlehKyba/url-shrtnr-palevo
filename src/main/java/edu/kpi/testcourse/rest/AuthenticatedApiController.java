@@ -16,8 +16,8 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
-import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Delete;
+import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.server.util.HttpHostResolver;
 import io.micronaut.security.annotation.Secured;
@@ -80,19 +80,18 @@ public class AuthenticatedApiController {
   }
 
   /**
-  * Get all Url aliases which belongs to username 
+  * Get all Url aliases which belongs to username.
   */
   @Get(value = "/urls", processes = MediaType.APPLICATION_JSON)
   public HttpResponse<String> getAll(
-    @Body UrlShortenRequest request,
-    Principal principal,
-    HttpRequest<?> httpRequest,
-    Logic logic) throws UrlRepository.PermissionDenied {
+      @Body UrlShortenRequest request,
+      Principal principal,
+      HttpRequest<?> httpRequest,
+      Logic logic) throws UrlRepository.PermissionDenied {
     try {
       var aliasList = logic.getAllAliasesForUser(principal.getName());
       return HttpResponse.ok(json.toJson(aliasList));
-    }
-    catch (PermissionDenied e) {
+    } catch (PermissionDenied e) {
       return HttpResponse.serverError(
         json.toJson(new ErrorResponse(1, "User is not authorized"))
       );
