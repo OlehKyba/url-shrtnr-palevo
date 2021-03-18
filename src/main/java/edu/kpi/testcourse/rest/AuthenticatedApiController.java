@@ -2,6 +2,8 @@ package edu.kpi.testcourse.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
+import com.nimbusds.jose.shaded.json.JSONObject;
 import edu.kpi.testcourse.entities.UrlAlias;
 import edu.kpi.testcourse.logic.Logic;
 import edu.kpi.testcourse.rest.models.ErrorResponse;
@@ -90,8 +92,10 @@ public class AuthenticatedApiController {
       Logic logic) throws UrlRepository.PermissionDenied {
     try {
       var aliasList = logic.getAllAliasesForUser(principal.getName());
-      return HttpResponse.ok(json.toJson(aliasList));
-    } catch (PermissionDenied e) {
+      JSONObject result = new JSONObject();
+      result.put("urls", aliasList);
+      return HttpResponse.ok(result.toJSONString());
+    } catch (UrlRepository.PermissionDenied e) {
       return HttpResponse.serverError(
         json.toJson(new ErrorResponse(1, "User is not authorized"))
       );
