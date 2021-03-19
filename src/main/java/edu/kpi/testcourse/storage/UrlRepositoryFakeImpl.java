@@ -1,6 +1,8 @@
 package edu.kpi.testcourse.storage;
 
 import edu.kpi.testcourse.entities.UrlAlias;
+import io.micronaut.context.annotation.Aliases;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,9 +55,22 @@ public class UrlRepositoryFakeImpl implements UrlRepository {
     }
   }
 
+  /**
+   * Create a list of UrlAlias objects by email.
+   *
+   * @param userEmail gets user email
+   * @return list of UrlAlias objects
+   * @throws edu.kpi.testcourse.storage.UrlRepository.PermissionDenied
+   *         error if emails are not equal
+   */
   @Override
   public List<UrlAlias> getAllAliasesForUser(String userEmail) {
-    // TODO: We should implement it
-    throw new UnsupportedOperationException();
+    List<UrlAlias> aliasesList = new ArrayList<>();
+    for (UrlAlias urlAlias : aliases.values()) {
+      if (urlAlias.email().equals(userEmail)) {
+        aliasesList.add(urlAlias);
+      }
+    }
+    return aliasesList;
   }
 }

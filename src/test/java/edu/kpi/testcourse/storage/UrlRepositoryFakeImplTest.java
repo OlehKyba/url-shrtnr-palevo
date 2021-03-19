@@ -5,6 +5,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 import edu.kpi.testcourse.entities.UrlAlias;
+import edu.kpi.testcourse.storage.UrlRepository.PermissionDenied;
 import org.junit.jupiter.api.Test;
 
 class UrlRepositoryFakeImplTest {
@@ -38,6 +39,19 @@ class UrlRepositoryFakeImplTest {
     }).isInstanceOf(UrlRepository.AliasAlreadyExist.class);
   }
 
+  @Test
+  void shouldGetAllAliasesForUser() {
+    //GIVEN
+    UrlRepository repo = new UrlRepositoryFakeImpl();
+
+    //WHEN
+    UrlAlias alias1 = new UrlAlias("http://r.com/short", "http://g.com/long1", "aaa@bbb.com");
+    repo.createUrlAlias(alias1);
+
+    //THEN
+    assertThat(repo.getAllAliasesForUser(alias1.email())).isNotNull();
+  }
+
   /**
    * Checking the main ability of delete function: TO DELETE!
    */
@@ -67,14 +81,16 @@ class UrlRepositoryFakeImplTest {
     UrlAlias alias1 = new UrlAlias("http://r.com/short", "http://g.com/long1", "aaa@bbb.com");
 
     //THEN
-    assertThrows(RuntimeException.class, ()->{repo.deleteUrlAlias(alias1.email(), alias1.alias());});
+    assertThrows(RuntimeException.class, () -> {
+      repo.deleteUrlAlias(alias1.email(), alias1.alias());
+    });
   }
 
   /**
    * Test if emails are not equals, throw PermissionDenied
    */
   @Test
-  void shouldCrashPermissionDenied() {
+  void shouldCrashOnDeletePermissionDenied() {
     //GIVEN
     UrlRepositoryFakeImpl repo = new UrlRepositoryFakeImpl();
 
@@ -83,7 +99,8 @@ class UrlRepositoryFakeImplTest {
     repo.createUrlAlias(alias1);
 
     //THEN
-    assertThrows(UrlRepository.PermissionDenied.class, ()->{repo.deleteUrlAlias("bbb@aaa.com", alias1.alias());});
+    assertThrows(UrlRepository.PermissionDenied.class, () -> {
+      repo.deleteUrlAlias("bbb@aaa.com", alias1.alias());
+    });
   }
-
 }
